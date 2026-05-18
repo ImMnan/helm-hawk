@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-master
+  namespace: {{ .Release.Namespace }}
+  labels: 
+    {{- include "helm-hawk.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "helm-hawk.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "helm-hawk.labels" . | nindent 8 }}
+        {{- with .Values.hawkPodLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      serviceAccountName: {{ include "helm-hawk.serviceAccountName" . }}
+      {{- with .Values.podSecurityContext.hawk }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }} 
+      containers:
+      - name: hawk-ctr
+        {{- with .Values.securityContext.hawk }}
+        securityContext:
+          {{- toYaml . | nindent 12 }}
+        {{- end }}    
+        image: "{{ .Values.images.hawk.repository }}:{{ .Values.images.hawk.tag }}"
+        imagePullPolicy: {{ .Values.images.hawk.pullPolicy }}
+        env:
+          - name: HAWK_CONFIG_PATH
+            value: /etc/hawk/configlist.yaml
+          - name: WORKING_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+        {{- with .Values.resources }}
+        resources:
+          {{- toYaml . | nindent 12 }}
+        {{- end }}
+        {{- with .Values.volumeMounts.hawk }}
+        volumeMounts:
+          {{- toYaml . | nindent 12 }}
+        {{- end }}
+      {{- with .Values.volumes.hawk }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
