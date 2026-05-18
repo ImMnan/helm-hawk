@@ -1,0 +1,199 @@
+
+# This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
+images:
+  hawk: 
+    repository: immnan/hawk
+    pullPolicy: IfNotPresent
+    tag: "0.5.0"
+  apiserver: 
+    repository: immnan/hawk-apiserver
+    pullPolicy: IfNotPresent
+    tag: "0.1.3"
+  ui: 
+    repository: immnan/hawk-ui
+    pullPolicy: IfNotPresent
+    tag: "0.2.0"
+# This is for the secrets for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+imagePullSecrets: []
+
+# This section builds out the service account more information can be found here: https://kubernetes.io/docs/concepts/security/service-accounts/
+serviceAccount:
+  # Specifies whether a service account should be created.
+  create: true
+  # Automatically mount a ServiceAccount's API credentials?
+  automount: true
+  # Annotations to add to the service account.
+  annotations: {}
+  labels: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template.
+  name: "hawk-sa"
+
+# This is for setting Kubernetes Annotations to a Pod.
+# For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+podAnnotations: 
+  hawk: {}
+  mongo: {}
+  apiServer: {}
+  ui: {}
+
+# This is for setting Kubernetes Labels to a Pod.
+# For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+labels: 
+  hawk: 
+    app: hawk
+  apiserver: 
+    app: hawk-apiserver
+    managedby: hawk
+  ui: 
+    app: hawk-ui
+    managedby: hawk    
+
+
+
+podSecurityContext:
+  hawk: 
+    runAsNonRoot: true,
+    runAsUser: 65532,
+    runAsGroup: 65532,
+    fsGroup: 65532,
+    fsGroupChangePolicy: OnRootMismatch,
+  apiserver: {}
+  ui: {}
+
+securityContext: 
+  hawk: {}
+  apiserver: {}
+  ui: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+# This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
+service:
+  apiserver:
+    # This sets the name of the service.
+    name: hawk-apiserver-svc
+  # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
+    type: ClusterIP
+  # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
+    port: 3000
+  ui: 
+    name: hawk-ui-svc
+    type: ClusterIP
+    port: 5000
+  
+# -- Expose the service via gateway-api HTTPRoute
+# Requires Gateway API resources and suitable controller installed within the cluster
+# (see: https://gateway-api.sigs.k8s.io/guides/)
+httpRoute:
+  # HTTPRoute enabled.
+  enabled: false
+  # HTTPRoute annotations.
+  annotations: {}
+  # Which Gateways this Route is attached to.
+  parentRefs:
+  - name: hawk-gateway
+  #  sectionName: http
+    # namespace: default
+  # Hostnames matching HTTP header.
+  hostnames:
+  - hawk.net
+  # List of rules and filters applied.
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /headers
+
+resources: 
+  hawk: 
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "1024Mi"
+      cpu: "500m" 
+  apiserver: {}
+  ui: {}
+
+# This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+probes: 
+  hawk: {}
+  apiserver: {}
+  ui: {}
+
+# This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
+autoscaling:
+  apiserver:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 50
+  # targetMemoryUtilizationPercentage: 80
+  ui: {}
+
+# Additional volumes on the output Deployment definition.
+volumes:
+  hawk:  
+    - name: hawk-config
+      configMap:
+        name: hawk-config
+    - name: job-template
+      configMap: 
+        name: job-template
+    - name: hawk-volume
+      persistentVolumeClaim:
+        claimName: hawk-shared-pvc
+    - name: git-token-secret
+      secret:
+        secretName: git-secret-token
+        optional: true
+  apiserver: {}
+  ui: {}
+# Additional volumeMounts on the output Deployment definition.
+volumeMounts: 
+  hawk:
+    - name: hawk-config
+      mountPath: /etc/hawk/
+      readOnly: true
+    - name: job-template
+      mountPath: /etc/hawk/template/
+      readOnly: true
+    - name: hawk-volume
+      mountPath: /opt/hawk-data/
+    - name: git-token-secret
+      mountPath: /etc/hawk/secrets/git-secret-token
+      readOnly: true
+  apiserver: {}
+  ui: {}
+
+nodeSelector: 
+  hawk: {}
+  apiserver: {}
+  ui: {}
+
+tolerations: 
+  hawk: []
+  apiserver: []
+  ui: []
+
+affinity: 
+  hawk: {}
+  apiserver: {}
+  ui: {}
+
+
+hawkConfig: 
+  configName: configlist.yaml
+  templateName: job-git.yaml
+  configMountPath: /etc/hawk/
+  templateMountPath: /etc/hawk/template/ 
+
+apiServerConfig: {}
+
+uiConfig: {}
+
