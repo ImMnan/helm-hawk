@@ -1,0 +1,30 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: any-dummy-job
+spec:
+  backoffLimit: 3
+  template:
+    spec:
+      restartPolicy: OnFailure
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        fsGroup: 65532
+        fsGroupChangePolicy: OnRootMismatch
+      containers:
+        - name: dummy-container
+          image: busybox:latest
+          env:
+            - name: SOURCE_RESULT
+              value: "{}"
+            - name: SOURCE_SHARED_VOLUME_PATH
+              value: "/opt/hawk-data/"
+          volumeMounts:
+            - name: hawk-volume
+              mountPath: /opt/hawk-data/
+      volumes:
+        - name: hawk-volume
+          persistentVolumeClaim:
+            claimName: hawk-shared-pvc

@@ -1,0 +1,35 @@
+- name: perfecto-doc
+  type: doc
+  id: perfecto-doc-12451
+  description: "this is a sample doc sync"
+  sync:
+    enabled: true
+    mode: local-agent
+    image: immnan/hawk-llm:0.1.1
+    schedule: "* * * * *"
+    job-template: /etc/hawk/template/job-git.yaml
+    sources:
+      - type: git
+        name: basic-git
+        sharedVolume:
+          name: hawk-volume
+          path: /opt/hawk-data/
+        git:
+          url: "https://github.com/ImMnan/doc-test.git"
+          branch: main
+          dirList: ["content/Perfecto"]
+          ignoreDirList: ["content/Perfecto/rest-api"]
+          credentials:
+            type: secret
+            name: git-secret-token
+            path: /etc/hawk/secrets
+    apiServer:
+      type: hawk-apiserver
+      name: hawk-api-service
+      connection:
+        serviceName: hawk-apiserver-svc
+        port: 3000
+      credentials:
+        type: secret
+        name: name-secret-token
+        path: /etc/hawk/secrets/
