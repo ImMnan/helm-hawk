@@ -1,0 +1,18 @@
+project: default
+destination:
+  server: https://kubernetes.default.svc
+  namespace: hawk
+syncPolicy:
+  automated:
+    enabled: true
+sources:
+  - repoURL: https://github.com/ImMnan/helm-hawk.git
+    path: .
+    targetRevision: main
+    helm:
+      valueFiles:
+        - $values/opl-large-values.yaml
+      releaseName: argocrane-large
+  - repoURL: https://github.com/ImMnan/k8s_annotator-tempFix.git
+    targetRevision: main
+    ref: values
