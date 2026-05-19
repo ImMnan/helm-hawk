@@ -42,6 +42,7 @@ podAnnotations:
 labels: 
   hawk: 
     app: hawk
+    type: master
   apiserver: 
     app: hawk-apiserver
     managedby: hawk
