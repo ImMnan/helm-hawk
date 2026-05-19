@@ -12,7 +12,7 @@ images:
   ui: 
     repository: immnan/hawk-ui
     pullPolicy: IfNotPresent
-    tag: "0.2.0"
+    tag: "0.2.1"
 # This is for the secrets for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
 imagePullSecrets: []
 
@@ -54,11 +54,12 @@ labels:
 
 podSecurityContext:
   hawk: 
-    runAsNonRoot: true,
-    runAsUser: 65532,
-    runAsGroup: 65532,
-    fsGroup: 65532,
-    fsGroupChangePolicy: OnRootMismatch,
+    runAsNonRoot: true
+    runAsUser: 65532
+    runAsGroup: 65532
+    fsGroup: 65532
+    fsGroupChangePolicy: OnRootMismatch
+    
   apiserver: {}
   ui: {}
 
@@ -72,20 +73,6 @@ securityContext:
   # readOnlyRootFilesystem: true
   # runAsNonRoot: true
   # runAsUser: 1000
-
-# This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
-service:
-  apiserver:
-    # This sets the name of the service.
-    name: hawk-apiserver-svc
-  # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
-    type: ClusterIP
-  # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
-    port: 3000
-  ui: 
-    name: hawk-ui-svc
-    type: ClusterIP
-    port: 5000
   
 # -- Expose the service via gateway-api HTTPRoute
 # Requires Gateway API resources and suitable controller installed within the cluster
@@ -190,11 +177,31 @@ affinity:
 
 hawkConfig: 
   configName: configlist.yaml
-  templateName: job-git.yaml
   configMountPath: /etc/hawk/
+  templateName: job-git.yaml
   templateMountPath: /etc/hawk/template/ 
 
 apiServerConfig: {}
 
 uiConfig: {}
 
+
+services:
+
+  mongo: 
+    name: mongo-svc
+    type: ClusterIP
+    port: 27017
+    targetPort: 27017
+
+  apiserver: 
+    name: apiserver-svc
+    type: ClusterIP
+    port: 3000
+    targetPort: 3000
+
+  ui: 
+    name: ui-svc
+    type: ClusterIP
+    port: 5000
+    targetPort: 5000
