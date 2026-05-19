@@ -1,8 +1,8 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: hawk-controller-role
-  namespace: hawk
+  name: {{ .Release.Name }}-controller-role
+  namespace: {{ .Release.Namespace }}
 rules:
   - apiGroups: [""]
     resources: ["pods", "services", "configmaps", "secrets", "persistentvolumeclaims"]
@@ -14,13 +14,13 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: hawk-controller-rb
-  namespace: hawk
+  name: {{.Release.Name }}-controller-rb
+  namespace: {{ .Release.Namespace }}
 subjects:
   - kind: ServiceAccount
-    name: hawk-sa
-    namespace: hawk
+    name: {{ include "helm-hawk.serviceAccountName" . }}
+    namespace: {{ .Release.Namespace }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: hawk-controller-role
+  name: {{ .Release.Name }}-controller-role
