@@ -1,12 +1,12 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: hawk
+  namespace: {{ .Release.Namespace }}
   {{ with .Values.labels.apiserver }}
   labels:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: hawk-apiserver
+  name: {{ .Release.Name }}-apiserver
 spec:
   replicas: 1
   selector:
@@ -25,9 +25,9 @@ spec:
       containers:
       - image: "{{ .Values.images.apiserver.repository }}:{{ .Values.images.apiserver.tag }}"
         imagePullPolicy: {{ .Values.images.apiserver.pullPolicy }}
-        name: hawk-apiserver
+        name: hawk-apiserver-ctr
         ports:
-        - containerPort: 3000
+        - containerPort: {{ .Values.services.apiserver.targetPort }}
         env:  
         - name: CRED_FILE_PATH
           value: "/etc/hawk-apiserver/secret.txt"
