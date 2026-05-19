@@ -1,12 +1,12 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: hawk
-  {{  with .Values.labels.ui }}
+  namespace: {{ .Release.Namespace }}
+  {{ with .Values.labels.ui }}
   labels:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: hawk-ui
+  name: {{ .Release.Name }}-ui
 spec:
   replicas: 1
   selector:
@@ -24,13 +24,13 @@ spec:
       containers:
       - image: "{{ .Values.images.ui.repository }}:{{ .Values.images.ui.tag }}"
         imagePullPolicy: {{ .Values.images.ui.pullPolicy }}
-        name: hawk-ui
+        name: hawk-ui-ctr
         ports:
-        - containerPort: 5000
+        - containerPort: {{ .Values.services.ui.targetPort }}
         env:  
         - name: NODE_ENV
           value: "production"
         - name: BASE_URL
-          value: "http://hawk-apiserver-svc:3000"
+          value: "http://{{ .Release.Name }}-{{ .Values.services.apiserver.name }}:{{ .Values.services.apiserver.port }}"
         - name: BASE_PATH
           value: "/v1"
