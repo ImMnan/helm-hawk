@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: hawk-config
-  namespace: hawk
+  namespace: {{ .Release.Namespace }}
 data:
   {{ .Values.hawkConfig.configName }}: |-
 {{ .Files.Get (printf "files/%s" .Values.hawkConfig.configName) | nindent 4 }}
@@ -13,7 +13,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: job-template
-  namespace: hawk
+  namespace: {{ .Release.Namespace }}
 data:
   {{ .Values.hawkConfig.templateName }}: |-
 {{ .Files.Get (printf "files/%s" .Values.hawkConfig.templateName) | nindent 4 }}

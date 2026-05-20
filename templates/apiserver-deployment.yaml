@@ -31,6 +31,12 @@ spec:
         env:  
         - name: CRED_FILE_PATH
           value: "/etc/hawk-apiserver/secret.txt"
+        {{- with .Values.probes.apiserver }}  
+        livenessProbe:
+          {{- toYaml .livenessProbe | nindent 10 }}
+        readinessProbe:
+          {{- toYaml .readinessProbe | nindent 10 }}
+        {{- end }}
         volumeMounts:
         - name: secret-volume
           mountPath: /etc/hawk-apiserver/
