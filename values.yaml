@@ -120,7 +120,6 @@ probes:
       periodSeconds: 10
       timeoutSeconds: 2
       failureThreshold: 3
-      
     readinessProbe:
       httpGet:
         path: /health/ready

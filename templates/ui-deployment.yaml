@@ -34,3 +34,13 @@ spec:
           value: "http://{{ .Release.Name }}-{{ .Values.services.apiserver.name }}:{{ .Values.services.apiserver.port }}"
         - name: BASE_PATH
           value: "/v1"
+        {{- with .Values.resources.ui }}
+        resources:
+          {{- toYaml . | nindent 12 }}
+        {{- end }}          
+        {{- with .Values.probes.ui }}  
+        livenessProbe:
+          {{- toYaml .livenessProbe | nindent 10 }}
+        readinessProbe:
+          {{- toYaml .readinessProbe | nindent 10 }}
+        {{- end }}

@@ -31,6 +31,10 @@ spec:
         env:  
         - name: CRED_FILE_PATH
           value: "/etc/hawk-apiserver/secret.txt"
+        {{- with .Values.resources.apiserver }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}          
         {{- with .Values.probes.apiserver }}  
         livenessProbe:
           {{- toYaml .livenessProbe | nindent 10 }}

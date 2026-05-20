@@ -47,8 +47,14 @@ spec:
                 fieldPath: metadata.namespace
         {{- with .Values.resources.hawk }}
         resources:
-          {{- toYaml . | nindent 12 }}
+          {{- toYaml . | nindent 10 }}
         {{- end }}
+        {{- with .Values.probes.hawk }}  
+        livenessProbe:
+          {{- toYaml .livenessProbe | nindent 10 }}
+        readinessProbe:
+          {{- toYaml .readinessProbe | nindent 10 }}
+        {{- end }}        
         {{- with .Values.volumeMounts.hawk }}
         volumeMounts:
           {{- toYaml . | nindent 12 }}
