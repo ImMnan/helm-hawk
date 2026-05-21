@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongo
+  namespace: {{ .Release.Namespace }}
+spec:
+  serviceName: {{ .Release.Name }}-{{ .Values.services.mongo.name }}
+  replicas: 1
+  selector:
+    {{- with .Values.labels.mongo }}
+    matchLabels:
+      {{- toYaml . | nindent 8 }}
+    {{ end }}  
+  template:
+    metadata:
+    {{- with .Values.labels.mongo }}
+      labels:
+        {{- toYaml . | nindent 8 }}
+    {{ end }}
+    spec:
+      containers:
+        - name: mongo-ctr
+          image: "{{ .Values.images.mongo.image }}:{{ .Values.images.mongo.tag }}"
+          args: ["--config", "/etc/mongo/mongod.conf"]
+          ports:
+            - containerPort: 27017
+              name: mongo
+        {{- with .Values.volumeMounts.mongo }}      
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+        {{ end }}
+      {{- with .Values.volumes.mongo }}
+      volumes:
+        {{ toYaml . | nindent 8 }}
+      {{ end }}
