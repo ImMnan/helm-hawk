@@ -13,6 +13,10 @@ images:
     repository: immnan/hawk-ui
     pullPolicy: IfNotPresent
     tag: "0.2.4"
+  llm: 
+    repository: immnan/hawk-llm
+    pullPolicy: IfNotPresent
+    tag: "0.2.0"
 # This is for the secrets for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
 imagePullSecrets: []
 
@@ -110,13 +114,29 @@ resources:
 
 # This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
 probes: 
-  hawk: {}
+  hawk:
+    livenessProbe:
+      httpGet:
+        path: /health/live
+        port: health
+      initialDelaySeconds: 60
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+    readinessProbe:
+      httpGet:
+        path: /health/ready
+        port: health
+      initialDelaySeconds: 60
+      periodSeconds: 5
+      timeoutSeconds: 5
+      failureThreshold: 2  
   apiserver: 
     livenessProbe:
       httpGet:
         path: /health/live
         port: 3000
-      initialDelaySeconds: 20
+      initialDelaySeconds: 60
       periodSeconds: 10
       timeoutSeconds: 2
       failureThreshold: 3
@@ -124,7 +144,7 @@ probes:
       httpGet:
         path: /health/ready
         port: 3000
-      initialDelaySeconds: 5
+      initialDelaySeconds: 60
       periodSeconds: 5
       timeoutSeconds: 2
       failureThreshold: 3   
@@ -138,6 +158,24 @@ autoscaling:
     maxReplicas: 5
     targetCPUUtilizationPercentage: 50
   # targetMemoryUtilizationPercentage: 80
+  ui: {}
+
+
+# Additional volumeMounts on the output Deployment definition.
+volumeMounts: 
+  hawk:
+    - name: hawk-config
+      mountPath: /etc/hawk/
+      readOnly: true
+    - name: job-template
+      mountPath: /etc/hawk/template/
+      readOnly: true
+    - name: hawk-volume       # If renamed - update the configmap
+      mountPath: /opt/hawk-data/
+    - name: git-token-secret  # If renamed - update the configmap
+      mountPath: /etc/hawk/secrets/git-secret-token
+      readOnly: true
+  apiserver: {}
   ui: {}
 
 # Additional volumes on the output Deployment definition.
@@ -156,22 +194,6 @@ volumes:
       secret:
         secretName: git-secret-token
         optional: true
-  apiserver: {}
-  ui: {}
-# Additional volumeMounts on the output Deployment definition.
-volumeMounts: 
-  hawk:
-    - name: hawk-config
-      mountPath: /etc/hawk/
-      readOnly: true
-    - name: job-template
-      mountPath: /etc/hawk/template/
-      readOnly: true
-    - name: hawk-volume
-      mountPath: /opt/hawk-data/
-    - name: git-token-secret
-      mountPath: /etc/hawk/secrets/git-secret-token
-      readOnly: true
   apiserver: {}
   ui: {}
 
@@ -193,7 +215,8 @@ affinity:
 
 hawkConfig: 
   configName: configlist.yaml
-  configMountPath: /etc/hawk/
+  configMountPath: /etc/hawk-data/ 
+  
   templateName: job-git.yaml
   templateMountPath: /etc/hawk/template/ 
 

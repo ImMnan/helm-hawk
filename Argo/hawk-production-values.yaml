@@ -4,7 +4,7 @@ images:
   hawk: 
     repository: immnan/hawk
     pullPolicy: IfNotPresent
-    tag: "0.5.0"
+    tag: "0.5.2"
   apiserver: 
     repository: immnan/hawk-apiserver
     pullPolicy: IfNotPresent

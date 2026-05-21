@@ -38,6 +38,10 @@ spec:
         {{- end }}    
         image: "{{ .Values.images.hawk.repository }}:{{ .Values.images.hawk.tag }}"
         imagePullPolicy: {{ .Values.images.hawk.pullPolicy }}
+        ports:
+          - name: health
+            containerPort: 8081
+            protocol: TCP        
         env:
           - name: HAWK_CONFIG_PATH
             value: {{ .Values.hawkConfig.configMountPath }}{{ .Values.hawkConfig.configName }}
