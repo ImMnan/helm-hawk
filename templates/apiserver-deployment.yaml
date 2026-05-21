@@ -23,7 +23,7 @@ spec:
   {{- end }}
     spec:
       containers:
-      - image: "{{ .Values.images.apiserver.repository }}:{{ .Values.images.apiserver.tag }}"
+      - image: "{{ .Values.images.apiserver.image }}:{{ .Values.images.apiserver.tag }}"
         imagePullPolicy: {{ .Values.images.apiserver.pullPolicy }}
         name: hawk-apiserver-ctr
         ports:

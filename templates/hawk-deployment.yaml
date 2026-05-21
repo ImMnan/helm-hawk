@@ -36,7 +36,7 @@ spec:
         securityContext:
           {{- toYaml . | nindent 12 }}
         {{- end }}    
-        image: "{{ .Values.images.hawk.repository }}:{{ .Values.images.hawk.tag }}"
+        image: "{{ .Values.images.hawk.image }}:{{ .Values.images.hawk.tag }}"
         imagePullPolicy: {{ .Values.images.hawk.pullPolicy }}
         ports:
           - name: health

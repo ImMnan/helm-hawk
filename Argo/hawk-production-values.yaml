@@ -2,17 +2,21 @@
 # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
 images:
   hawk: 
-    repository: immnan/hawk
+    image: immnan/hawk
     pullPolicy: IfNotPresent
     tag: "0.5.2"
   apiserver: 
-    repository: immnan/hawk-apiserver
+    image: immnan/hawk-apiserver
     pullPolicy: IfNotPresent
     tag: "0.2.0"
   ui: 
-    repository: immnan/hawk-ui
+    image: immnan/hawk-ui
     pullPolicy: IfNotPresent
     tag: "0.2.5"
+  mongo: 
+    image: mongo
+    pullPolicy: IfNotPresent
+    tag: "8.0"
 # This is for the secrets for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
 imagePullSecrets: []
 
@@ -49,6 +53,8 @@ labels:
   ui: 
     app: hawk-ui
     managedby: hawk    
+  mongo: 
+    app: mongo    
 
 
 
@@ -62,11 +68,13 @@ podSecurityContext:
     
   apiserver: {}
   ui: {}
+  mongo: {}
 
 securityContext: 
   hawk: {}
   apiserver: {}
   ui: {}
+  mongo: {}
   # capabilities:
   #   drop:
   #   - ALL
@@ -107,7 +115,7 @@ resources:
       cpu: "500m" 
   apiserver: {}
   ui: {}
-
+  mongo: {}
 # This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
 probes: 
   hawk:
@@ -126,13 +134,13 @@ probes:
       initialDelaySeconds: 60
       periodSeconds: 5
       timeoutSeconds: 5
-      failureThreshold: 2    
+      failureThreshold: 2  
   apiserver: 
     livenessProbe:
       httpGet:
         path: /health/live
         port: 3000
-      initialDelaySeconds: 20
+      initialDelaySeconds: 60
       periodSeconds: 10
       timeoutSeconds: 2
       failureThreshold: 3
@@ -140,11 +148,38 @@ probes:
       httpGet:
         path: /health/ready
         port: 3000
-      initialDelaySeconds: 5
+      initialDelaySeconds: 60
       periodSeconds: 5
       timeoutSeconds: 2
       failureThreshold: 3   
   ui: {}
+  mongo: 
+    livenessProbe:
+      exec:
+        command:
+        - mongosh
+        - --port
+        - "27017"
+        - --eval
+        - "db.adminCommand('ping')"
+      initialDelaySeconds: 60
+      periodSeconds: 10
+      timeoutSeconds: 5
+      successThreshold: 1
+      failureThreshold: 3
+    readinessProbe:
+      exec:
+        command:
+        - mongosh
+        - --port
+        - "27017"
+        - --eval
+        - "db.adminCommand({ hello: 1 }).isWritablePrimary || db.adminCommand({ hello: 1 }).secondary"
+      initialDelaySeconds: 60
+      periodSeconds: 10
+      timeoutSeconds: 5
+      successThreshold: 1
+      failureThreshold: 3
 
 # This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
 autoscaling:
@@ -155,6 +190,30 @@ autoscaling:
     targetCPUUtilizationPercentage: 50
   # targetMemoryUtilizationPercentage: 80
   ui: {}
+
+
+# Additional volumeMounts on the output Deployment definition.
+volumeMounts: 
+  hawk:
+    - name: hawk-config
+      mountPath: /etc/hawk/
+      readOnly: true
+    - name: job-template
+      mountPath: /etc/hawk/template/
+      readOnly: true
+    - name: hawk-volume       # If renamed - update the configmap
+      mountPath: /opt/hawk-data/
+    - name: git-token-secret  # If renamed - update the configmap
+      mountPath: /etc/hawk/secrets/git-secret-token
+      readOnly: true
+  apiserver: {}
+  ui: {}
+  mongo: 
+    - name: mongo-storage
+      mountPath: /data/db
+    - name: mongo-config
+      mountPath: /etc/mongo/
+      readOnly: true  
 
 # Additional volumes on the output Deployment definition.
 volumes:
@@ -174,22 +233,13 @@ volumes:
         optional: true
   apiserver: {}
   ui: {}
-# Additional volumeMounts on the output Deployment definition.
-volumeMounts: 
-  hawk:
-    - name: hawk-config
-      mountPath: /etc/hawk/
-      readOnly: true
-    - name: job-template
-      mountPath: /etc/hawk/template/
-      readOnly: true
-    - name: hawk-volume
-      mountPath: /opt/hawk-data/
-    - name: git-token-secret
-      mountPath: /etc/hawk/secrets/git-secret-token
-      readOnly: true
-  apiserver: {}
-  ui: {}
+  mongo: 
+    - name: mongo-storage
+      persistentVolumeClaim:
+        claimName: mongo-pvc
+    - name: mongo-config
+      configMap:
+        name: mongo-config   
 
 nodeSelector: 
   hawk: {}
@@ -209,7 +259,8 @@ affinity:
 
 hawkConfig: 
   configName: configlist.yaml
-  configMountPath: /etc/hawk/
+  configMountPath: /etc/hawk-data/ 
+  
   templateName: job-git.yaml
   templateMountPath: /etc/hawk/template/ 
 
