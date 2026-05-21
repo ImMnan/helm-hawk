@@ -5,7 +5,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
 data:
   {{ .Values.hawkConfig.configName }}: |-
-{{ .Files.Get (printf "files/%s" .Values.hawkConfig.configName) | nindent 4 }}
+{{- .Files.Get (printf "files/%s" .Values.hawkConfig.configName) | nindent 4 }}
                       
 
 ---
@@ -16,4 +16,4 @@ metadata:
   namespace: {{ .Release.Namespace }}
 data:
   {{ .Values.hawkConfig.templateName }}: |-
-{{ .Files.Get (printf "files/%s" .Values.hawkConfig.templateName) | nindent 4 }}
+{{- .Files.Get (printf "files/%s" .Values.hawkConfig.templateName) | nindent 4 }}
