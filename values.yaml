@@ -259,8 +259,7 @@ affinity:
 
 hawkConfig: 
   configName: configlist.yaml
-  configMountPath: /etc/hawk-data/ 
-  
+  configMountPath: /etc/hawk/ 
   templateName: job-git.yaml
   templateMountPath: /etc/hawk/template/ 
 
