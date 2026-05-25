@@ -1,0 +1,67 @@
+{{- if .Values.autoscaling.apiserver.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ .Release.Name }}-ui-hpa
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "helm-hawk.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ .Release.Name }}-ui
+  minReplicas: {{ .Values.autoscaling.ui.minReplicas }}
+  maxReplicas: {{ .Values.autoscaling.ui.maxReplicas }}
+  metrics:
+    {{- if .Values.autoscaling.ui.targetCPUUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.autoscaling.ui.targetCPUUtilizationPercentage }}
+    {{- end }}
+    {{- if .Values.autoscaling.ui.targetMemoryUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.autoscaling.ui.targetMemoryUtilizationPercentage }}
+    {{- end }}
+{{- end }}
+{{- if .Values.autoscaling.apiserver.enabled }}
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ .Release.Name }}-apiserver-hpa
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "helm-hawk.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ .Release.Name }}-apiserver
+  minReplicas: {{ .Values.autoscaling.apiserver.minReplicas }}
+  maxReplicas: {{ .Values.autoscaling.apiserver.maxReplicas }}
+  metrics:
+    {{- if .Values.autoscaling.apiserver.targetCPUUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.autoscaling.apiserver.targetCPUUtilizationPercentage }}
+    {{- end }}
+    {{- if .Values.autoscaling.apiserver.targetMemoryUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.autoscaling.apiserver.targetMemoryUtilizationPercentage }}
+    {{- end }}
+{{- end }}
