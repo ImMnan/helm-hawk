@@ -8,7 +8,7 @@ images:
   apiserver: 
     image: immnan/hawk-apiserver
     pullPolicy: IfNotPresent
-    tag: "0.2.0"
+    tag: "0.2.1"
   ui: 
     image: immnan/hawk-ui
     pullPolicy: IfNotPresent
