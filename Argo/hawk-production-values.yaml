@@ -12,7 +12,7 @@ images:
   ui: 
     image: immnan/hawk-ui
     pullPolicy: IfNotPresent
-    tag: "0.2.5"
+    tag: "0.2.6"
   mongo: 
     image: mongo
     pullPolicy: IfNotPresent
