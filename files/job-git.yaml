@@ -30,7 +30,7 @@ spec:
               cpu: "1"
             limits:
               memory: "16Gi"
-              cpu: "2"  
+              cpu: "4"  
       volumes:
         - name: hawk-volume
           persistentVolumeClaim:
