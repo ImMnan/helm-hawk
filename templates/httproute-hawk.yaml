@@ -27,3 +27,10 @@ spec:
       backendRefs:
       - name: hawk-ui-svc
         port: 5000
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /mongo
+      backendRefs:
+      - name: hawk-mongo-svc
+        port: 27017
