@@ -21,6 +21,14 @@ spec:
               value: "{}"
             - name: SOURCE_SHARED_VOLUME_PATH
               value: "/opt/hawk-data/"
+            - name: OLLAMA_CONNECT_TIMEOUT_SECONDS
+              value: "60"
+            - name: OLLAMA_READ_TIMEOUT_SECONDS
+              value: "900"
+            - name: OLLAMA_TIMEOUT_SECONDS
+              value: "900"
+            - name: OLLAMA_MAX_RETRIES
+              value: "3"
           volumeMounts:
             - name: hawk-volume
               mountPath: /opt/hawk-data/
