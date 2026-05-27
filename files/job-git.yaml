@@ -34,11 +34,8 @@ spec:
               mountPath: /opt/hawk-data/
           resources:
             requests:
-              memory: "8Gi"
-              cpu: "1"
-            limits:
               memory: "16Gi"
-              cpu: "4"  
+              cpu: "4"
       volumes:
         - name: hawk-volume
           persistentVolumeClaim:
