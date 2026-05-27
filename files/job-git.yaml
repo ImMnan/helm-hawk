@@ -13,6 +13,8 @@ spec:
         runAsGroup: 65532
         fsGroup: 65532
         fsGroupChangePolicy: OnRootMismatch
+      nodeSelector:
+        gpu: "yes"
       containers:
         - name: dummy-container
           image: busybox:latest
@@ -32,10 +34,6 @@ spec:
           volumeMounts:
             - name: hawk-volume
               mountPath: /opt/hawk-data/
-          resources:
-            requests:
-              memory: "16Gi"
-              cpu: "4"
       volumes:
         - name: hawk-volume
           persistentVolumeClaim:
