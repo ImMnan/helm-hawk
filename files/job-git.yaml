@@ -15,6 +15,11 @@ spec:
         fsGroupChangePolicy: OnRootMismatch
       nodeSelector:
         gpu: "yes"
+      tolerations:
+        - key: nvidia.com/gpu
+          operator: Equal
+          value: present
+          effect: NoSchedule
       containers:
         - name: dummy-container
           image: busybox:latest
