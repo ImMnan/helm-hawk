@@ -1,0 +1,99 @@
+
+{{- if eq .Values.main.embedding.name "gte-1.5" }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-gte-embed
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- with .Values.labels.embedding }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+    tag: {{ .Chart.Version }}-{{ .Release.Name }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- with .Values.labels.embedding }}
+      {{- toYaml . | nindent 6 }}
+      {{- end }}
+      tag: {{ .Chart.Version }}-{{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        {{- with .Values.labels.embedding }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        tag: {{ .Chart.Version }}-{{ .Release.Name }}
+    spec:
+      serviceAccountName: {{ include "helm-rag_vLLM.serviceAccountName" . }}
+      automountServiceAccountToken: true
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: model-cache
+        persistentVolumeClaim:
+          claimName: {{ .Release.Name }}-{{ .Values.main.embedding.name }}-cache
+      initContainers:
+      - name: download-models-hf
+        image: python:3.11-slim
+        env:
+        - name: HF_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: hf-token-secret
+              key: token
+        command:
+          - sh
+          - -c
+          - |
+            set -euo pipefail
+            mkdir -p /models/hub
+            pip install -q huggingface_hub
+            python - <<'PY'
+            from huggingface_hub import snapshot_download
+            snapshot_download(
+                'Alibaba-NLP/gte-Qwen2-1.5B-instruct',
+                cache_dir='/models/hub',
+                local_dir_use_symlinks=False,
+            )
+            PY
+            test -d /models/hub/models--Alibaba-NLP--gte-Qwen2-1.5B-instruct
+            ls -la /models/hub | head -n 40
+        volumeMounts:
+        - name: model-cache
+          mountPath: /models
+      containers:
+      - name: gte-embed-ctr
+        image: {{ .Values.images.embedding.image }}:{{ .Values.images.embedding.tag }}
+        imagePullPolicy: {{ .Values.images.embedding.pullPolicy }}
+        ports:
+        - containerPort: {{ (index .Values.services.embedding.ports 0).targetPort }}
+          name: embed-http
+        env:
+        - name: EMBED_MODEL
+          value: "Alibaba-NLP/gte-Qwen2-1.5B-instruct"
+        - name: HF_HOME
+          value: "/models"
+        - name: HF_HUB_CACHE
+          value: "/models/hub"
+        - name: HF_HUB_OFFLINE
+          value: "1"
+        - name: TRANSFORMERS_OFFLINE
+          value: "1"
+        - name: EMBED_QUERY_TEMPLATE
+          value: "{text}"
+        - name: EMBED_DOCUMENT_TEMPLATE
+          value: "{text}"
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+          readOnly: false
+        - name: model-cache
+          mountPath: /models
+          readOnly: true
+        {{-  with .Values.resources.embedding }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+{{ end }}

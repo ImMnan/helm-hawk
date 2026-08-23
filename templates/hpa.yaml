@@ -1,67 +1,33 @@
-{{- if .Values.autoscaling.apiserver.enabled }}
+{{- if .Values.autoscaling.orca.enabled }}
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ .Release.Name }}-ui-hpa
+  name: {{ .Release.Name }}-orca-hpa
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "helm-hawk.labels" . | nindent 4 }}
+    tag: {{ .Chart.Version }}-{{ .Release.Name }}
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: {{ .Release.Name }}-ui
-  minReplicas: {{ .Values.autoscaling.ui.minReplicas }}
-  maxReplicas: {{ .Values.autoscaling.ui.maxReplicas }}
+    name: {{ .Release.Name }}-orca
+  minReplicas: {{ .Values.autoscaling.orca.minReplicas }}
+  maxReplicas: {{ .Values.autoscaling.orca.maxReplicas }}
   metrics:
-    {{- if .Values.autoscaling.ui.targetCPUUtilizationPercentage }}
+    {{- if .Values.autoscaling.orca.targetCPUUtilizationPercentage }}
     - type: Resource
       resource:
         name: cpu
         target:
           type: Utilization
-          averageUtilization: {{ .Values.autoscaling.ui.targetCPUUtilizationPercentage }}
+          averageUtilization: {{ .Values.autoscaling.orca.targetCPUUtilizationPercentage }}
     {{- end }}
-    {{- if .Values.autoscaling.ui.targetMemoryUtilizationPercentage }}
+    {{- if .Values.autoscaling.orca.targetMemoryUtilizationPercentage }}
     - type: Resource
       resource:
         name: memory
         target:
           type: Utilization
-          averageUtilization: {{ .Values.autoscaling.ui.targetMemoryUtilizationPercentage }}
-    {{- end }}
-{{- end }}
-{{- if .Values.autoscaling.apiserver.enabled }}
----
-apiVersion: autoscaling/v2
-kind: HorizontalPodAutoscaler
-metadata:
-  name: {{ .Release.Name }}-apiserver-hpa
-  namespace: {{ .Release.Namespace }}
-  labels:
-    {{- include "helm-hawk.labels" . | nindent 4 }}
-spec:
-  scaleTargetRef:
-    apiVersion: apps/v1
-    kind: Deployment
-    name: {{ .Release.Name }}-apiserver
-  minReplicas: {{ .Values.autoscaling.apiserver.minReplicas }}
-  maxReplicas: {{ .Values.autoscaling.apiserver.maxReplicas }}
-  metrics:
-    {{- if .Values.autoscaling.apiserver.targetCPUUtilizationPercentage }}
-    - type: Resource
-      resource:
-        name: cpu
-        target:
-          type: Utilization
-          averageUtilization: {{ .Values.autoscaling.apiserver.targetCPUUtilizationPercentage }}
-    {{- end }}
-    {{- if .Values.autoscaling.apiserver.targetMemoryUtilizationPercentage }}
-    - type: Resource
-      resource:
-        name: memory
-        target:
-          type: Utilization
-          averageUtilization: {{ .Values.autoscaling.apiserver.targetMemoryUtilizationPercentage }}
+          averageUtilization: {{ .Values.autoscaling.orca.targetMemoryUtilizationPercentage }}
     {{- end }}
 {{- end }}

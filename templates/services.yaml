@@ -1,49 +1,48 @@
+## QTE EMBEDDING SERVICES
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Release.Name }}-{{ .Values.services.mongo.name }}
-spec:
-  clusterIP: None
-  ports:
-  - name: port-{{ .Values.services.mongo.name }}
-    port: {{ .Values.services.mongo.port }}
-    protocol: TCP
-    targetPort: {{ .Values.services.mongo.targetPort }}
-  selector:
-    app: mongo
-  type: {{ .Values.services.mongo.type }}
----
-
-apiVersion: v1
-kind: Service
-metadata:
-  name: {{ .Release.Name }}-{{ .Values.services.apiserver.name }}
+  name: {{ .Release.Name }}-{{ .Values.services.embedding.name }}
   namespace: {{ .Release.Namespace }}
 spec:
-  type: {{ .Values.services.apiserver.type }}
-  selector:
-  {{with .Values.labels.apiserver }}    
-    {{- toYaml . | nindent 4 }}
-  {{- end }}  
   ports:
-  - port: {{ .Values.services.apiserver.port }}
-    targetPort: {{ .Values.services.apiserver.targetPort }}
-    protocol: TCP
+    {{- toYaml .Values.services.embedding.ports | nindent 4 }}
+  # The label selector should match the deployment labels & it is useful for prefix caching feature
+  selector:
+    {{- toYaml .Values.labels.embedding | nindent 4 }}
+    tag: {{ .Chart.Version }}-{{ .Release.Name }}
+  sessionAffinity: None
+  type: {{ .Values.services.embedding.type }}
 ---
-
+#vLLM service
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Release.Name }}-{{ .Values.services.ui.name }}
+  name: {{ .Release.Name }}-{{ .Values.services.vllm.name }}
   namespace: {{ .Release.Namespace }}
 spec:
-  type: {{ .Values.services.ui.type }}
-  selector:
-  {{with .Values.labels.ui }}    
-    {{- toYaml . | nindent 4 }}
-  {{- end }}  
   ports:
-  - port: {{ .Values.services.ui.port }}
-    targetPort: {{ .Values.services.ui.targetPort }}
-    protocol: TCP
+    {{- toYaml .Values.services.vllm.ports | nindent 4 }}
+  # The label selector should match the deployment labels & it is useful for prefix caching feature
+  selector:
+    {{- toYaml .Values.labels.vllm | nindent 4 }}
+    tag: {{ .Chart.Version }}-{{ .Release.Name }}
+  sessionAffinity: None
+  type: {{ .Values.services.vllm.type }}
 
+---
+#vLLM service
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-{{ .Values.services.orca.name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  ports:
+    {{- toYaml .Values.services.orca.ports | nindent 4 }}
+  # The label selector should match the deployment labels & it is useful for prefix caching feature
+  selector:
+    {{- toYaml .Values.labels.orca | nindent 4 }}
+    tag: {{ .Chart.Version }}-{{ .Release.Name }}
+  sessionAffinity: None
+  type: {{ .Values.services.orca.type }}

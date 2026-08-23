@@ -1,0 +1,81 @@
+{{ if eq .Values.main.embedding.name "e5-large" }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-orca
+  namespace: {{ .Release.Namespace }}
+  labels:
+    tag: {{ .Chart.Version }}-{{ .Release.Name }}
+    {{- with .Values.labels.orca }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      tag: {{ .Chart.Version }}-{{ .Release.Name }}
+      {{- with .Values.labels.orca }}
+      {{- toYaml . | nindent 6 }}
+      {{- end }}
+  template:
+    metadata:
+      labels:
+        tag: {{ .Chart.Version }}-{{ .Release.Name }}
+        {{- with .Values.labels.orca }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      containers:
+      - name: orca-ctr
+        image: {{ .Values.images.orca.image }}:{{ .Values.images.orca.tag }}
+        imagePullPolicy: {{ .Values.images.orca.pullPolicy }}
+        ports:
+        - containerPort: {{ (index .Values.services.orca.ports 0).targetPort }}
+          name: orca-http
+        env:
+        - name: QDRANT_HOST
+          value: "qdrant-service.hawk.svc.cluster.local:6334"
+        - name: VLLM_HOST
+          value: {{ .Release.Name }}-{{ .Values.services.vllm.name }}
+        - name: EMBED_SERVICE_TYPE
+          value: "e5:{{ .Release.Name }}-{{ .Values.services.embedding.name }}"
+        - name: QWEN_MODEL_NAME
+          value: {{ .Values.main.vllm.inference_model | default "Qwen/Qwen2.5-7B-Instruct" | quote }}
+        - name: FIBER_PORT
+          value: {{ (index .Values.services.orca.ports 0).targetPort | quote }}
+        - name: TRANSFORMERS_OFFLINE
+          value: "1"
+        - name: CODE_COLLECTION
+          value: "e5-code_chunks"
+        - name: CHANGE_COLLECTION
+          value: "e5-change_chunks"
+        - name: CHANGE_DATE_FIELD
+          value: "date"
+        - name: DOC_COLLECTION
+          value: "e5-doc_chunks"
+        - name: GEN_DOC_COLLECTION
+          value: "e5-gen_doc_chunks"
+        - name: FIBER_READ_TIMEOUT
+          value: "30s"
+        - name: FIBER_WRITE_TIMEOUT
+          value: "120s"
+        - name: FIBER_IDLE_TIMEOUT
+          value: "60s"
+        - name: VLLM_TIMEOUT
+          value: "180s"
+        - name: EMBED_TIMEOUT
+          value: "60s"
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        resources:
+          requests:
+            cpu: "500m"
+            memory: 2Gi
+          limits:
+            cpu: "1"
+            memory: 4Gi
+{{ end }}

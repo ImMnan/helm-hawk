@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-vllm-qwen
+  namespace: {{ .Release.Namespace }}
+  labels:
+    tag: {{ .Chart.Version }}-{{ .Release.Name }}
+    {{- with .Values.labels.vllm }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      tag: {{ .Chart.Version }}-{{ .Release.Name }}
+      {{- with .Values.labels.vllm }}
+      {{- toYaml . | nindent 6 }}
+      {{- end }}
+  template:
+    metadata:
+      labels:
+        tag: {{ .Chart.Version }}-{{ .Release.Name }}
+        {{- with .Values.labels.vllm }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      volumes:
+      - name: cache-volume
+        persistentVolumeClaim:
+          claimName: {{ .Release.Name }}-vllm-cache
+      # vLLM needs to access the host's shared memory for tensor parallel inference.
+      - name: shm
+        emptyDir:
+          medium: Memory
+          sizeLimit: "2Gi"
+      {{- with .Values.tolerations.vllm }}
+      tolerations:
+      {{- toYaml . | nindent 6 }}
+      {{- end }}
+      containers:
+      - name: qwen-3
+        image: {{ .Values.images.vllm.image }}:{{ .Values.images.vllm.tag }}
+        imagePullPolicy: {{ .Values.images.vllm.pullPolicy }}
+        command: ["/bin/sh", "-c"]
+        args:
+        - >-
+          {{- .Values.main.vllm.runCmd | nindent 10 }}
+        env:
+        - name: HF_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: hf-token-secret
+              key: token
+        - name: HF_HOME
+          value: "/root/.cache/huggingface"
+        - name: PYTORCH_CUDA_ALLOC_CONF
+          value: "expandable_segments:True"
+        ports:
+        - name: llm-http
+          containerPort: 8000
+        {{- with .Values.resources.vllm }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
+        volumeMounts:
+        - mountPath: /root/.cache/huggingface
+          name: cache-volume
+        - name: shm
+          mountPath: /dev/shm
+        startupProbe:
+          tcpSocket:
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 5
+          timeoutSeconds: 10
+          failureThreshold: 600
+        livenessProbe:
+          tcpSocket:
+            port: 8000
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          tcpSocket:
+            port: 8000
+          initialDelaySeconds: 45
+          periodSeconds: 10
+          timeoutSeconds: 10
+          failureThreshold: 3
