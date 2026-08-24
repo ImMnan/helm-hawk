@@ -1,18 +1,18 @@
-project: default
-destination:
-  server: https://kubernetes.default.svc
-  namespace: hawk
-syncPolicy:
-  automated:
-    enabled: true
-sources:
-  - repoURL: https://github.com/ImMnan/helm-hawk.git
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: orca-prod
+spec:
+  destination:
+    namespace: hawk
+    server: ''
+  source:
     path: .
-    targetRevision: main
+    repoURL: https://github.com/ImMnan/helm-rag_vLLM.git
+    targetRevision: HEAD
     helm:
+      releaseName: v1_prod
       valueFiles:
-        - $values/opl-large-values.yaml
-      releaseName: argocrane-large
-  - repoURL: https://github.com/ImMnan/k8s_annotator-tempFix.git
-    targetRevision: main
-    ref: values
+        - Argo/orca-production-values.yaml
+  sources: []
+  project: default
