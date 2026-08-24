@@ -1,7 +1,7 @@
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
-  name: hawk-ai-gateway
+  name: orca-infer-gateway
   namespace: hawk
 spec:
   gatewayClassName: istio
@@ -9,14 +9,17 @@ spec:
     - name: http
       protocol: HTTP
       port: 80
-      hostname: infer.hawk-llm.ai
+      hostname: orca-infer.ai
     - name: grpc
       protocol: HTTP
       port: 6334
-      hostname: infer.hawk-llm.ai
-#    - name: https
-#      protocol: HTTPS
-#      port: 443
-#      hostname: hawk.k8s.net
-#      tls:
-#        mode: Terminate
+      hostname: orca-infer.ai
+    - name: https
+      protocol: HTTPS
+      port: 443
+      hostname: orca-infer.ai
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: orca-infer-tls
+            kind: Secret
