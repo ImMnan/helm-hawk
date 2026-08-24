@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-mini-ui
+  namespace: {{ .Release.Namespace }}
+  labels:
+    tag: {{ .Chart.Version }}-{{ .Release.Name }}
+    {{- with .Values.labels.mini_ui }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      tag: {{ .Chart.Version }}-{{ .Release.Name }}
+      {{- with .Values.labels.mini_ui }}
+      {{- toYaml . | nindent 6 }}
+      {{- end }}
+  template:
+    metadata:
+      labels:
+        tag: {{ .Chart.Version }}-{{ .Release.Name }}
+        {{- with .Values.labels.mini_ui }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      containers:
+      - image: {{ .Values.images.mini_ui.image }}:{{ .Values.images.mini_ui.tag }}
+        imagePullPolicy: {{ .Values.images.mini_ui.pullPolicy }}
+        name: mini-ui
+        env: 
+        - name: RAG_BASE_URL
+          value: {{ .Release.Name }}-{{ .Values.services.orca.name }}
+        - name: PORT
+          value: {{ index .Values.services.mini_ui.ports 0 "targetPort" | quote }}
+        ports:
+        - containerPort: {{ index .Values.services.mini_ui.ports 0 "targetPort" }}
+          name: {{ index .Values.services.mini_ui.ports 0 "name" }}
+        {{ with .Values.resources.mini_ui }}
+        resources:
+          {{ toYaml . | nindent 10 }}
+        {{ end }}

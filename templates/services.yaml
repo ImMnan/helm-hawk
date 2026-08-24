@@ -46,3 +46,19 @@ spec:
     tag: {{ .Chart.Version }}-{{ .Release.Name }}
   sessionAffinity: None
   type: {{ .Values.services.orca.type }}
+---
+#mini-ui service
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-{{ .Values.services.mini_ui.name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  ports:
+    {{- toYaml .Values.services.mini_ui.ports | nindent 4 }}
+  # The label selector should match the deployment labels & it is useful for prefix caching feature
+  selector:
+    {{- toYaml .Values.labels.mini_ui | nindent 4 }}
+    tag: {{ .Chart.Version }}-{{ .Release.Name }}
+  sessionAffinity: None
+  type: {{ .Values.services.mini_ui.type }}

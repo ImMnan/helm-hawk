@@ -5,9 +5,9 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   parentRefs:
-    - name: hawk-ai-gateway
+    - name: orca-infer-gateway
   hostnames:
-    - infer.hawk-llm.ai
+    - orca-infer.ai
   rules:
     - matches:
         - path:
@@ -29,6 +29,13 @@ spec:
       backendRefs:
         - name: qdrant-service
           port: 6333
+    - matches: 
+        - path: 
+            type: PathPrefix
+            value: /ui
+      backendRefs:
+        - name: {{ .Release.Name }}-{{ .Values.services.mini_ui.name }}
+          port: {{ (index .Values.services.mini_ui.ports 0).port }}
           
 ---
 apiVersion: gateway.networking.k8s.io/v1

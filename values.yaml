@@ -24,10 +24,10 @@ images:
     image: immnan/gte-embed-py
     pullPolicy: IfNotPresent
     tag: "0.1.0"
-  ui: 
+  mini_ui: 
     image: immnan/mini-ui
     pullPolicy: IfNotPresent
-    tag: "0.1.0"
+    tag: "0.1.3"
   vllm:
     image: vllm/vllm-openai
     pullPolicy: IfNotPresent
@@ -43,7 +43,7 @@ serviceAccount:
   automount: true
   # Annotations to add to the service account.
   annotations: 
-    iam.gke.io/gcp-service-account: example.@appspot.gserviceaccount.com
+    iam.gke.io/gcp-service-account: support-sales@appspot.gserviceaccount.com
   labels: {}
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template.
@@ -68,7 +68,7 @@ labels:
     app: orca
     type: rag-go
   
-  ui: 
+  mini_ui: 
     app: mini-ui
     type: ui    
 
@@ -81,85 +81,48 @@ labels:
 podSecurityContext:
   orca: {}
   embedding: {}
-  ui: {}
+  vllm: {}
 
 securityContext: 
   orca: {}
   embedding: {}
-  ui: {}
-  # capabilities:
-  #   drop:
-  #   - ALL
-  # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
-  # runAsUser: 1000
+  vllm: {}
 
 resources: 
   orca: 
     requests:
-      memory: "256Mi"
-      cpu: "250m"
+      cpu: "500m"
+      memory: 2Gi
     limits:
-      memory: "1024Mi"
-      cpu: "500m" 
-  embedding: 
-    requests:
       cpu: "1"
       memory: 4Gi
+  embedding: 
+    requests:
+      cpu: "250"
+      memory: 4Gi
     limits:
-      cpu: "2"
+      cpu: "1"
       memory: 8Gi  
   vllm: 
     limits:
-      cpu: "4"
+      cpu: "2"
       memory: "16Gi"
       nvidia.com/gpu: "1"
     requests:
-      cpu: "2"
+      cpu: "1"
       memory: "8Gi"
-      nvidia.com/gpu: "1"  
+      nvidia.com/gpu: "1"
+  mini_ui: 
+    requests:
+      cpu: "250m"
+      memory: "512Mi"
+    limits:
+      cpu: "1"
+      memory: "4Gi"
 
 # This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
 autoscaling: 
   orca: {}
-
-
-# Additional volumeMounts on the output Deployment definition.
-volumeMounts: 
-  hawk:
-    - name: hawk-config
-      mountPath: /etc/hawk/
-      readOnly: true
-    - name: job-template
-      mountPath: /etc/hawk/template/
-      readOnly: true
-    - name: hawk-volume       # If renamed - update the configmap
-      mountPath: /opt/hawk-data/
-    - name: git-token-secret  # If renamed - update the configmap
-      mountPath: /etc/hawk/secrets/git-secret-token
-      readOnly: true
-  embedding: {}
-  ui: {}
-
-# Additional volumes on the output Deployment definition.
-volumes:
-  hawk:  
-    - name: hawk-config
-      configMap:
-        name: hawk-config
-    - name: job-template
-      configMap: 
-        name: job-template
-    - name: hawk-volume
-      persistentVolumeClaim:
-        claimName: hawk-shared-pvc
-    - name: git-token-secret
-      secret:
-        secretName: git-secret-token
-        optional: true
-  apiserver: {}
-  ui: {}
-
 
 nodeSelector: 
   orca: {}
@@ -187,6 +150,7 @@ services:
     - port: 80
       targetPort: 8000
       name: llm-http
+
   orca: 
     name: orca-svc
     type: ClusterIP
@@ -203,3 +167,11 @@ services:
       protocol: TCP
       targetPort: 8000
       name: embed-http
+
+  mini_ui: 
+    name: mini-ui-svc
+    type: ClusterIP
+    ports: 
+    - port: 80
+      targetPort: 3000
+      name: http

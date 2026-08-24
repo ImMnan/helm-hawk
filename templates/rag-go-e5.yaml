@@ -71,11 +71,8 @@ spec:
         volumeMounts:
         - name: tmp
           mountPath: /tmp
+        {{ with .Values.resources.orca }}
         resources:
-          requests:
-            cpu: "500m"
-            memory: 2Gi
-          limits:
-            cpu: "1"
-            memory: 4Gi
+          {{ toYaml . | nindent 10 }}
+        {{ end }}
 {{ end }}
