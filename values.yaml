@@ -98,19 +98,19 @@ resources:
       memory: 4Gi
   embedding: 
     requests:
-      cpu: "250m"
+      cpu: "500m"
       memory: 4Gi
     limits:
       cpu: "1"
       memory: 8Gi  
   vllm: 
-    limits:
-      cpu: "2"
-      memory: "16Gi"
-      nvidia.com/gpu: "1"
     requests:
       cpu: "1"
       memory: "8Gi"
+      nvidia.com/gpu: "1"  
+    limits:
+      cpu: "2"
+      memory: "16Gi"
       nvidia.com/gpu: "1"
   mini_ui: 
     requests:
