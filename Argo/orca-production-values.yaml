@@ -24,10 +24,10 @@ images:
     image: immnan/gte-embed-py
     pullPolicy: IfNotPresent
     tag: "0.1.0"
-  ui: 
+  mini_ui: 
     image: immnan/mini-ui
     pullPolicy: IfNotPresent
-    tag: "0.1.0"
+    tag: "0.1.4"
   vllm:
     image: vllm/vllm-openai
     pullPolicy: IfNotPresent
@@ -68,7 +68,7 @@ labels:
     app: orca
     type: rag-go
   
-  ui: 
+  mini_ui: 
     app: mini-ui
     type: ui    
 
@@ -91,27 +91,34 @@ securityContext:
 resources: 
   orca: 
     requests:
-      memory: "256Mi"
-      cpu: "250m"
+      cpu: "500m"
+      memory: 2Gi
     limits:
-      memory: "1024Mi"
-      cpu: "500m" 
-  embedding: 
-    requests:
       cpu: "1"
       memory: 4Gi
+  embedding: 
+    requests:
+      cpu: "500m"
+      memory: 4Gi
     limits:
-      cpu: "2"
+      cpu: "1"
       memory: 8Gi  
   vllm: 
-    limits:
-      cpu: "4"
-      memory: "16Gi"
-      nvidia.com/gpu: "1"
     requests:
-      cpu: "2"
+      cpu: "1"
       memory: "8Gi"
       nvidia.com/gpu: "1"  
+    limits:
+      cpu: "2"
+      memory: "16Gi"
+      nvidia.com/gpu: "1"
+  mini_ui: 
+    requests:
+      cpu: "250m"
+      memory: "512Mi"
+    limits:
+      cpu: "1"
+      memory: "4Gi"
 
 # This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
 autoscaling: 
@@ -160,3 +167,11 @@ services:
       protocol: TCP
       targetPort: 8000
       name: embed-http
+
+  mini_ui: 
+    name: mini-ui-svc
+    type: ClusterIP
+    ports: 
+    - port: 80
+      targetPort: 3000
+      name: http

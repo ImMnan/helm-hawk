@@ -11,7 +11,7 @@ spec:
     repoURL: https://github.com/ImMnan/helm-rag_vLLM.git
     targetRevision: HEAD
     helm:
-      releaseName: v1_prod
+      releaseName: prod
       valueFiles:
         - Argo/orca-production-values.yaml
   sources: []
