@@ -29,7 +29,7 @@ spec:
       backendRefs:
         - name: qdrant-service
           port: 6333
-    - matches: 
+    - matches:
         - path: 
             type: PathPrefix
             value: /ui
@@ -45,10 +45,10 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   parentRefs:
-    - name: hawk-ai-gateway
+    - name: orca-infer-gateway
       sectionName: grpc
   hostnames:
-    - infer.hawk-llm.ai
+    - orca-infer.ai
   rules:
     - backendRefs:
         - name: qdrant-service
