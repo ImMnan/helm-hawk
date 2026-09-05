@@ -28,6 +28,9 @@ spec:
       volumes:
       - name: tmp
         emptyDir: {}
+      - name: app-profiles
+        configMap:
+          name: app-profile-cm        
       containers:
       - name: orca-ctr
         image: {{ .Values.images.orca.image }}:{{ .Values.images.orca.tag }}
@@ -66,7 +69,12 @@ spec:
           value: "380s"
         - name: EMBED_TIMEOUT
           value: "120s"
+        - name: APP_PROFILE_DIR
+          value: "/etc/app-prof"
         volumeMounts:
+        - name: app-profiles
+          mountPath: /etc/app-prof
+          readOnly: true        
         - name: tmp
           mountPath: /tmp
         {{ with .Values.resources.orca }}
