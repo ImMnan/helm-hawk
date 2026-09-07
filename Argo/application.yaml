@@ -5,7 +5,7 @@ metadata:
 spec:
   destination:
     namespace: hawk
-    server: ''
+    server: kubernetes.default
   source:
     path: .
     repoURL: https://github.com/ImMnan/helm-rag_vLLM.git
@@ -16,3 +16,7 @@ spec:
         - Argo/orca-production-values.yaml
   sources: []
   project: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
